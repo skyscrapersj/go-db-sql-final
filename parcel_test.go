@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"github.com/stretchr/testify/assert"
 	"math/rand"
 	"testing"
 	"time"
@@ -25,9 +26,7 @@ func getTestParcel() Parcel {
 
 func TestAddGetDelete(t *testing.T) {
 	db, err := sql.Open("sqlite", "tracker.db")
-	if err != nil {
-		require.NoError(t, err)
-	}
+	require.NoError(t, err)
 	defer db.Close()
 
 	store := NewParcelStore(db)
@@ -39,10 +38,11 @@ func TestAddGetDelete(t *testing.T) {
 
 	stored, err := store.Get(number)
 	require.NoError(t, err)
-	require.Equal(t, stored.Client, parcel.Client)
-	require.Equal(t, stored.Status, parcel.Status)
-	require.Equal(t, stored.Address, parcel.Address)
-	require.Equal(t, stored.CreatedAt, parcel.CreatedAt)
+	assert.Equal(t, stored.Client, parcel.Client)
+	assert.Equal(t, stored.Status, parcel.Status)
+	assert.Equal(t, stored.Address, parcel.Address)
+	assert.Equal(t, stored.CreatedAt, parcel.CreatedAt)
+	assert.Equal(t, stored.Number, parcel.Number)
 
 	err = store.Delete(number)
 	require.NoError(t, err)
@@ -71,14 +71,12 @@ func TestSetAddress(t *testing.T) {
 
 	stored, err := store.Get(number)
 	require.NoError(t, err)
-	require.Equal(t, stored.Address, newAddress)
+	assert.Equal(t, stored.Address, newAddress)
 }
 
 func TestSetStatus(t *testing.T) {
 	db, err := sql.Open("sqlite", "tracker.db")
-	if err != nil {
-		require.NoError(t, err)
-	}
+	require.NoError(t, err)
 	defer db.Close()
 
 	store := NewParcelStore(db)
@@ -93,7 +91,7 @@ func TestSetStatus(t *testing.T) {
 
 	stored, err := store.Get(number)
 	require.NoError(t, err)
-	require.Equal(t, stored.Status, ParcelStatusSent)
+	assert.Equal(t, stored.Status, ParcelStatusSent)
 }
 
 func TestGetByClient(t *testing.T) {
@@ -130,12 +128,9 @@ func TestGetByClient(t *testing.T) {
 	storedParcels, err := store.GetByClient(client)
 
 	require.NoError(t, err)
-	require.Equal(t, len(storedParcels), len(parcels))
+	assert.Equal(t, len(storedParcels), len(parcels))
 
 	for _, parcel := range storedParcels {
-		require.Equal(t, parcelMap[parcel.Number].Address, parcel.Address)
-		require.Equal(t, parcelMap[parcel.Number].CreatedAt, parcel.CreatedAt)
-		require.Equal(t, parcelMap[parcel.Number].Status, parcel.Status)
-		require.Equal(t, parcelMap[parcel.Number].Client, parcel.Client)
+		assert.Equal(t, parcelMap[parcel.Number], parcel)
 	}
 }
